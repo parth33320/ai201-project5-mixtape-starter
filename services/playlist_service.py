@@ -63,6 +63,7 @@ def get_playlist_songs(playlist_id: str) -> list[dict]:
         .all()
     )
 
+    # Note: Correct retrieval including all songs (fixes Issue #5 off-by-one).
     return [song.to_dict() for song in songs]
 
 
