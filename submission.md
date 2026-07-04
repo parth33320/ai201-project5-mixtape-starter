@@ -18,6 +18,13 @@ The Mixtape application is structured as follows:
   - `notification_service.py`: Generation and retrieval of social notifications.
   - `playlist_service.py`: Ordering and retrieval of playlist songs.
 
+**Data Flow Example: Song Rating Notification**
+1.  **Route**: A `POST` request to `/songs/<id>/rate` is received by `routes/songs.py:rate()`.
+2.  **Service**: It calls `notification_service.rate_song()`.
+3.  **Logic**: The service updates the `Rating` in the database and calls `create_notification()` to alert the song sharer.
+4.  **Model**: A new `Notification` record is created in the database, targeted at the song sharer identified by `song.shared_by`.
+5.  **Return**: The updated rating is returned to the route, which sends a JSON response to the client.
+
 ---
 
 ## Root Cause Analysis
