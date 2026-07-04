@@ -42,6 +42,7 @@ def record_listening_event(user_id: str, song_id: str) -> ListeningEvent:
 def update_listening_streak(user: User, now: datetime) -> None:
     """
     Update a user's listening streak based on their last listening date.
+    Aligns with the Docstring Contract: all consecutive calendar days increment the streak.
 
     Streak rules:
     - If the user hasn't listened before: streak starts at 1.
