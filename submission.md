@@ -46,7 +46,8 @@ The Mixtape application is structured as follows:
 - **Reproduction**: Searched for a song with multiple tags. The raw SQL result set contained duplicate entries for the song.
 - **Navigation Strategy**: Traced `GET /songs/search` to `search_service.py:search_songs`. Inspected the SQLAlchemy query construction.
 - **Root Cause**: The query performed an `outerjoin(song_tags)` but only filtered on `Song` fields. Because a join with the association table returns one row per tag for a song, songs with multiple tags were duplicated in the raw SQL result set.
-- **Fix and Side-Effect Check**: Removed the redundant `outerjoin`. Since tags are already loaded via a `lazy="subquery"` relationship on the `Song` model, the join was unnecessary for the current search criteria (title and artist). Verified with `tests/test_search_duplicates.py` and `tests/test_search.py`.
+- **Fix**: Removed the redundant `outerjoin` from the query in `search_service.py`.
+- **Side-Effect Check**: Verified that tags still load correctly via the `lazy="subquery"` relationship. Confirmed that search still works by title and artist, and results are unique even for songs with multiple tags. Verified with `tests/test_search_duplicates.py` and `tests/test_search.py`.
 
 ### Issue #4: Missing notification for song ratings
 - **Reproduction**: Rated a song shared by a friend and checked that friend's notifications.

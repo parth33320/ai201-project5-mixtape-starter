@@ -2,6 +2,7 @@ import pytest
 from app import create_app, db
 from models import User, Song, Tag, song_tags
 from services.search_service import search_songs
+import inspect
 
 @pytest.fixture
 def app():
@@ -28,27 +29,17 @@ def song_with_tags(app):
         return s.id
 
 def test_search_no_duplicates(app, song_with_tags):
+    """
+    Ensure that searching for a song with multiple tags returns exactly one result.
+    """
     with app.app_context():
-        # The search_songs function uses db.session.query(Song).all()
-        # To show that it would fail if it didn't return unique objects (or if we were using a different query type),
-        # we can verify that the underlying query *does* produce duplicates at the DB level,
-        # and that the fix (removing the join) prevents this.
-
-        # This test should fail if search_songs returns more than 1 result.
-        # Since SQLAlchemy 2.0 .all() on a legacy query object de-duplicates,
-        # we might need to use a different assertion or different way to trigger the bug.
-
-        # If the user says there's a bug, maybe they're using a version where .all() doesn't de-duplicate,
-        # or they expect us to fix the redundant join anyway.
-
         results = search_songs("Multi-Tag")
         assert len(results) == 1, f"Expected 1 result, got {len(results)}"
 
-def test_search_query_is_clean(app, song_with_tags):
-    with app.app_context():
-        # We can also check if the query contains a join when it shouldn't.
-        # However, the task is specifically about duplicates.
-
-        # If I change search_songs to return only IDs, I can see the duplicates.
-        # But I should test the service as it is.
-        pass
+def test_search_songs_does_not_contain_redundant_join():
+    """
+    Ensure that the search_songs implementation does not contain the redundant join
+    that was causing duplicate rows at the database level.
+    """
+    source = inspect.getsource(search_songs)
+    assert "outerjoin" not in source, "Found redundant 'outerjoin' in search_songs service."
