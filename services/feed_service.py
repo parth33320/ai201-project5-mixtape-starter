@@ -10,7 +10,7 @@ from app import db
 from models import User, Song, ListeningEvent
 
 
-RECENT_THRESHOLD = timedelta(minutes=10)
+RECENT_THRESHOLD = timedelta(minutes=10)  # Friends Feed Threshold: 10 minutes
 
 
 def get_friends_listening_now(user_id: str) -> list[dict]:
