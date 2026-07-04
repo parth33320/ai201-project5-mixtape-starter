@@ -30,10 +30,11 @@ The Mixtape application is structured as follows:
 ## Root Cause Analysis
 
 ### Issue #1: My listening streak keeps resetting
-- **Reproduction**: Set a user's `last_listened_at` to a Saturday. Submit a listening event for the following Sunday.
-- **Navigation Strategy**: Traced `GET /users/<id>/streak` to `streak_service.py:get_streak`. Followed the update path in `record_listening_event` to `update_listening_streak`.
-- **Root Cause**: The logic `elif days_since_last == 1 and today.weekday() != 6` contained a hardcoded "Sunday exception". In Python's `weekday()`, 6 is Sunday. This caused the streak to reset (falling into the `else: streak = 1` block) every Sunday, even if the user listened on Saturday.
-- **Fix and Side-Effect Check**: Ensure the code treats all consecutive days equally by using `elif days_since_last == 1:`. Verified that skipping a day still correctly resets the streak by running `tests/test_streaks.py`.
+- **Reproduction**: Manually set a user's `last_listened_at` to a Saturday (e.g., 2024-06-15) and `listening_streak` to 1. Submit a listening event for the following Sunday (2024-06-16).
+- **Navigation Strategy**: Traced the streak update path from `routes/songs.py:listen` -> `streak_service.py:record_listening_event` -> `streak_service.py:update_listening_streak`.
+- **Root Cause**: The condition `elif days_since_last == 1 and today.weekday() != 6` explicitly prevented streaks from incrementing on Sundays. Since Python's `datetime.weekday()` returns 6 for Sunday, the condition failed every Sunday, falling through to the `else` block which resets the streak to 1.
+- **Fix**: Removed the `and today.weekday() != 6` clause from the increment logic in `update_listening_streak`, ensuring all consecutive calendar days are treated equally as per the Docstring Contract.
+- **Side-Effect Check**: Verified that the streak still correctly resets to 1 if a day is skipped (e.g., Friday to Sunday) and remains unchanged if multiple listens occur on the same day. Added regression tests in `tests/test_streaks.py` covering these cases.
 
 ### Issue #2: Friends Listening Now shows people from yesterday
 - **Reproduction**: Created a listening event for a friend 12 hours ago.
