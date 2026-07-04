@@ -36,3 +36,11 @@ def test_rating_creates_notification(app, users, song):
         notifications = get_notifications(u1_id)
         assert len(notifications) == 1
         assert notifications[0]['type'] == 'song_rated'
+
+def test_rating_own_song_does_not_create_notification(app, users, song):
+    u1_id, u2_id = users
+    with app.app_context():
+        # u1 shared the song, u1 rates it
+        rate_song(u1_id, song, 5)
+        notifications = get_notifications(u1_id)
+        assert len(notifications) == 0
