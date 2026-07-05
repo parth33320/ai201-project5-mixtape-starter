@@ -68,3 +68,8 @@ The Mixtape application is structured as follows:
 - **Use 1 (Date Logic)**: I asked the AI to explain the return values of Python's `datetime.weekday()` versus `isoweekday()`. This helped me identify that the code's check for `!= 6` was explicitly blocking Sunday increments, which directly contradicted our Docstring Contract. 
 - **Use 2 (SQL Tracing)**: I used the AI to summarize the `search_service.py` module and explain how SQLAlchemy handles many-to-many relationships. It helped me trace how the Song model connects to Tag via the `song_tags` association table.
 - **Course-Correction**: During the search duplicate hunt (Issue #3), the AI initially suggested adding a `.distinct()` call to the query. However, I verified the SQLAlchemy query construction and realized the root cause was a redundant `outerjoin(song_tags)`. I overrode the AI's suggestion and performed a deeper fix by removing the unnecessary join, as the tags were already configured for lazy="subquery" loading in `models.py`.
+
+## Regression Test Evidence
+- **Test File**: `tests/test_playlist_songs_fix.py`
+- **Behavior Verified**: Verifies that every song assigned to a playlist is returned in the response.
+- **Failure Analysis**: This test would have failed against the buggy code because the `get_playlist_songs` function used a Python `slice [:-1]`. While the test expects a list length of 3, the buggy implementation would have returned only 2 songs, triggering an `AssertionError`.
