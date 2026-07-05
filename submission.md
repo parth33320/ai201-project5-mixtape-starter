@@ -55,12 +55,11 @@ The Mixtape application is structured as follows:
 - **Navigation Strategy**: Compared `notification_service.py:add_to_playlist` (which sends notifications) with `rate_song`. I saw that `rate_song` lacked any call to `create_notification()`, leaving the Docstring Contract for social alerts unfulfilled despite the rating being saved to the database.
 - **Root Cause**: The `rate_song` function implemented the rating logic but lacked the call to `create_notification`.
 - **Fix**: Added a call to `create_notification` inside `rate_song`, targeted at `song.shared_by`. Verified with `tests/test_notifications.py`.
-- **Side-effect check**: Confirmed that users do not receive notifications for rating their own songs.
+- **Side-effect check**: Confirmed that users do not receive notifications for rating their own songs. Confirmed users don't get notifications for self-rating. This check is sufficient because it ensures the new trigger respects the Docstring Contract to only notify the sharer.
 
 ### Issue #5: The last song in a playlist never shows up
 - **Reproduction**: Created a playlist with 3 songs and fetched its contents. Only 2 songs were returned.
 - **Navigation Strategy**: Traced `GET /playlists/<id>/songs` to `playlist_service.py:get_playlist_songs`. I saw the `songs[:-1]` slice in the return statement; I recognized this as the specific logic discarding the final element of the list before it reached the client.
-.
 - **Root Cause**: The function was returning `songs[:-1]`. This Python slice excludes the last element of the list, violating the Docstring Contract which promises "all songs in the playlist."
 - **Fix**: Ensure the full list is returned without slicing. Verified with `tests/test_playlist_songs.py`.
-- **Side-effect check**: Confirmed that ordering is preserved by the SQL query.
+- **Side-effect check**: Confirmed that ordering is preserved by the SQL query. Confirmed ordering is preserved. This is sufficient because it proves removing the Python slice did not interfere with the `ORDER BY position` logic in the SQLAlchemy query.
